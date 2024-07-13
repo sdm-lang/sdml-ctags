@@ -7,8 +7,8 @@
 --map-SDML=+.sdm
 --map-SDML=+.sdml
 
---extras=+r
---fields=+r
+#--extras=+r
+#--fields=+r
 
 #==============================================================================
 # Symbol types
@@ -21,7 +21,9 @@
 --kinddef-SDML=e,enum,enums
 --kinddef-SDML=x,event,events
 --kinddef-SDML=p,property,properties
+--kinddef-SDML=r,rdf,rdf
 --kinddef-SDML=s,structure,structures
+--kinddef-SDML=c,class,classes
 --kinddef-SDML=u,union,unions
 
 --kinddef-SDML=t,type,types
@@ -37,7 +39,9 @@
 --_scopesep-SDML=M/e::
 --_scopesep-SDML=M/x::
 --_scopesep-SDML=M/p::
+--_scopesep-SDML=M/r::
 --_scopesep-SDML=M/s::
+--_scopesep-SDML=M/c::
 --_scopesep-SDML=M/u::
 
 --_scopesep-SDML=E/m:.
@@ -48,16 +52,18 @@
 --_scopesep-SDML=u/V:.
 
 #==============================================================================
-# Roles and extras
+# Roles
 #==============================================================================
 
 --_roledef-SDML.M=imported,imported module
---_roledef-SDML.m=identity,entity identity
---_roledef-SDML.t=assertion,annotation assertion
 --_roledef-SDML.t=imported,imported type
---_roledef-SDML.t=ref,type reference
 
---_extradef-SDML=annotation,annotation properties and constraints
+--_roledef-SDML.t=assertion,annotation assertion
+
+--_roledef-SDML.d=base,datatype reference
+--_roledef-SDML.E=source,entity reference
+--_roledef-SDML.p=ref,property reference
+--_roledef-SDML.t=type,has-type reference
 
 #==============================================================================
 # Parse tables
@@ -121,7 +127,7 @@
 # Skip strings
 #==============================================================================
 
---_mtable-regex-SDML=skipString/"//{tenter=string}
+--_mtable-regex-SDML=skipString/[[:space:]]*"//{tenter=string}
 --_mtable-regex-SDML=string/\\"//
 --_mtable-regex-SDML=string/"(@[a-zA-Z\-_]+)?//{tleave}
 --_mtable-regex-SDML=string/.//
@@ -130,7 +136,7 @@
 # Skip URIs
 #==============================================================================
 
---_mtable-regex-SDML=skipUri/<//{tenter=uri}
+--_mtable-regex-SDML=skipUri/[[:space:]]*<//{tenter=uri}
 --_mtable-regex-SDML=uri/[^>]+//
 --_mtable-regex-SDML=uri/>//{tleave}
 --_mtable-regex-SDML=uri/.//
@@ -139,33 +145,33 @@
 # Annotations
 #==============================================================================
 
---_mtable-regex-SDML=annotation/[[:space:]]*@([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)[[:space:]]+/\1/t/{_role=assertion}{tenter=annProperty}
---_mtable-regex-SDML=annotation/[[:space:]]*assert[[:space:]]+([[:alnum:]\-_]+)?[[:space:]]+/\1/C/{tenter=annConstraint}
+--_mtable-regex-SDML=annotation/[[:space:]]*@([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)\b/\1/t/{_role=assertion}{tenter=annProperty}
+--_mtable-regex-SDML=annotation/[[:space:]]*assert[[:space:]]+([[:alnum:]\-_]+)?\b/\1/C/{tenter=annConstraint}
 
 --_mtable-extend-SDML=annProperty+skipComment
 --_mtable-regex-SDML=annProperty/[[:space:]]*=[[:space:]]+///{tjump=value}
 
 --_mtable-extend-SDML=annConstraint+skipComment
 --_mtable-regex-SDML=annConstraint/[[:space:]]*=[[:space:]]+"///{tjump=string}
---_mtable-regex-SDML=annConstraint/[[:space:]]*is[[:space:]]*///{tenter=annConstraintBody}
+--_mtable-regex-SDML=annConstraint/[[:space:]]*is\b///{tenter=annConstraintBody}
 
 --_mtable-regex-SDML=annConstraint/[[:space:]]*(=|/=|<|>|<=|>=|not|and|or|xor|implies|iff|forall|exists|in|empty)[[:space:]]+///
---_mtable-regex-SDML=annConstraint/[[:space:]]*end[[:space:]]+///{tleave}
+--_mtable-regex-SDML=annConstraint/[[:space:]]*end\b///{tleave}
 
 --_mtable-regex-SDML=value/^[[:space:]]*"///{tjump=string}
 --_mtable-regex-SDML=value/^[[:space:]]*<///{tjump=uri}
---_mtable-regex-SDML=value/^[[:space:]]*(true|false)///{tleave}
+--_mtable-regex-SDML=value/^[[:space:]]*(true|false)\b///{tleave}
 --_mtable-regex-SDML=value/^[[:space:]]*(\+|\-)?[0-9]+(\.[0-9]+)?([eE](\+|\-)[0-9]+)?///{tleave}
---_mtable-regex-SDML=value/^[[:space:]]*([[:alnum:]]+)(:[[:alnum:]]+)?(\([^)]*\))?///{tleave}
+--_mtable-regex-SDML=value/^[[:space:]]*(([[:alnum:]]+)(:[[:alnum:]]+)?)(\([^)]*\))?/\1/t/{_role=type}{tleave}
 --_mtable-regex-SDML=value/^[[:space:]]*\[///{tjump=valueList}
 
 --_mtable-regex-SDML=valueList/^[ \t\r\n]+///
+--_mtable-regex-SDML=valueList/^[[:space:]]*\]///{tleave}
 --_mtable-regex-SDML=valueList/^[[:space:]]*"///{tenter=string}
 --_mtable-regex-SDML=valueList/^[[:space:]]*<///{tenter=uri}
---_mtable-regex-SDML=valueList/^[[:space:]]*(true|false)///
+--_mtable-regex-SDML=valueList/^[[:space:]]*(true|false)\b///
 --_mtable-regex-SDML=valueList/^[[:space:]]*(\+|\-)?[0-9]+(\.[0-9]+)?([eE](\+|\-)[0-9]+)?///
---_mtable-regex-SDML=valueList/^[[:space:]]*([[:alnum:]\-_]+)(:[[:alnum:]\-_]+)?(\([^)]*\))?///
---_mtable-regex-SDML=valueList/^[[:space:]]*]///{tleave}
+--_mtable-regex-SDML=valueList/^[[:space:]]*(([[:alnum:]\-_]+)(:[[:alnum:]\-_]+)?)(\([^\)]*\))?/\1/t/{_role=type}
 
 #==============================================================================
 # Annotation-only body
@@ -174,7 +180,7 @@
 --_mtable-regex-SDML=annOnlyBody/^[ \t\r]*\n///
 --_mtable-extend-SDML=annOnlyBody+skipComment
 --_mtable-extend-SDML=annOnlyBody+annotation
---_mtable-regex-SDML=annOnlyBody/^[[:space:]]+end[[:space:]]+///{tleave}
+--_mtable-regex-SDML=annOnlyBody/^[[:space:]]*end\b///{tleave}
 
 #==============================================================================
 # Body with member definitions
@@ -184,8 +190,13 @@
 --_mtable-extend-SDML=memberedBody+skipComment
 --_mtable-regex-SDML=memberedBody/^[[:space:]]*is\b///{tenter=annOnlyBody}
 --_mtable-regex-SDML=memberedBody/^[[:space:]]*end\b///{scope=pop}{tleave}
---_mtable-regex-SDML=memberedBody/^[[:space:]]*([[:alnum:]\-_]+)[[:space:]]+\->[[:space:]]+(\{[^\}]+\})?[[:space:]]*[[:alnum:]\-_]+(:[[:alnum:]\-_]+)?/\1/m/{scope=ref}
---_mtable-regex-SDML=memberedBody/^[[:space:]]*ref[[:space:]]+([[:alnum:]\-_]+:)?([[:alnum:]\-_]+)/\2/m/{scope=ref}
+
+#--_mtable-regex-SDML=memberedBody/^[[:space:]]*([[:alnum:]\-_]+)[[:space:]]+\->[[:space:]]+(\{[^\}]+\})?[[:space:]]*[[:alnum:]\-_]+(:[[:alnum:]\-_]+)?/\1/m/{scope=ref}
+
+--_mtable-regex-SDML=memberedBody/^[[:space:]]*([[:alnum:]\-_]+)[[:space:]]+(?=\->)/\1/m/{scope=ref}{pcre2}
+--_mtable-regex-SDML=memberedBody/^[[:space:]]*\->[[:space:]]+(\{[^\}]+\})?[[:space:]]*([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)/\2/t/{_role=type}{scope=ref}
+
+--_mtable-regex-SDML=memberedBody/^[[:space:]]*ref[[:space:]]+(([[:alnum:]\-_]+:)?([[:alnum:]\-_]+))\b/\1/p/{_role=ref}{scope=ref}
 
 #==============================================================================
 # Top-level file, before and after module
@@ -194,7 +205,7 @@
 --_mtable-regex-SDML=outer/^[ \t\r\n]+///
 --_mtable-extend-SDML=outer+skipComment
 
---_mtable-regex-SDML=outer/^[[:space:]]*module[[:space:]]+([[:alnum:]\-_]+)[[:space:]]/\1/M/{scope=push}{tenter=module}
+--_mtable-regex-SDML=outer/^[[:space:]]*module[[:space:]]+([[:alnum:]\-_]+)\b/\1/M/{scope=push}{tenter=module}
 
 #==============================================================================
 # Module definitions
@@ -204,30 +215,30 @@
 --_mtable-extend-SDML=module+skipComment
 --_mtable-extend-SDML=module+skipString
 --_mtable-extend-SDML=module+skipUri
---_mtable-regex-SDML=module/^[[:space:]]*base[[:space:]]+///
---_mtable-regex-SDML=module/^[[:space:]]*version[[:space:]]+///
---_mtable-regex-SDML=module/^[[:space:]]*is[[:space:]]+///{tenter=moduleBody}
+--_mtable-regex-SDML=module/^[[:space:]]*base\b///
+--_mtable-regex-SDML=module/^[[:space:]]*version\b///
+--_mtable-regex-SDML=module/^[[:space:]]*is\b///{tenter=moduleBody}
 
 --_mtable-regex-SDML=moduleBody/^[ \t\r]*\n///
 --_mtable-extend-SDML=moduleBody+skipComment
---_mtable-regex-SDML=moduleBody/^[[:space:]]*import[[:space:]]+([[:alnum:]\-_]+:[[:alnum:]\-_]+)[[:space:]]+/\1/t/{_role=imported}
---_mtable-regex-SDML=moduleBody/^[[:space:]]*import[[:space:]]+([[:alnum:]\-_]+)[[:space:]]+/\1/M/{_role=imported}
---_mtable-regex-SDML=moduleBody/^[[:space:]]*import[[:space:]]+\[[[:space:]]+///{tenter=import}
+--_mtable-regex-SDML=moduleBody/^[[:space:]]*import[[:space:]]+([[:alnum:]\-_]+:[[:alnum:]\-_]+)\b/\1/t/{_role=imported}
+--_mtable-regex-SDML=moduleBody/^[[:space:]]*import[[:space:]]+([[:alnum:]\-_]+)\b/\1/M/{_role=imported}
+--_mtable-regex-SDML=moduleBody/^[[:space:]]*import[[:space:]]+\[[[:space:]]*///{tenter=import}
 --_mtable-extend-SDML=moduleBody+annotation
 --_mtable-regex-SDML=moduleBody/^[[:space:]]*datatype[[:space:]]+([[:alnum:]\-_]+)/\1/d/{scope=push}{tenter=datatype}
 --_mtable-regex-SDML=moduleBody/^[[:space:]]*entity[[:space:]]+([[:alnum:]\-_]+)/\1/E/{scope=push}{tenter=entity}
 --_mtable-regex-SDML=moduleBody/^[[:space:]]*enum[[:space:]]+([[:alnum:]\-_]+)/\1/e/{scope=push}{tenter=enum}
 --_mtable-regex-SDML=moduleBody/^[[:space:]]*event[[:space:]]+([[:alnum:]\-_]+)/\1/x/{scope=push}{tenter=event}
 --_mtable-regex-SDML=moduleBody/^[[:space:]]*property[[:space:]]+([[:alnum:]\-_]+)/\1/p/{tenter=property}
---_mtable-regex-SDML=moduleBody/^[[:space:]]*rdf[[:space:]]+([[:alnum:]\-_]+)/\1/p/{tenter=rdf}
+--_mtable-regex-SDML=moduleBody/^[[:space:]]*rdf[[:space:]]+([[:alnum:]\-_]+)/\1/r/{tenter=rdf}
 --_mtable-regex-SDML=moduleBody/^[[:space:]]*structure[[:space:]]+([[:alnum:]\-_]+)/\1/s/{scope=push}{tenter=structure}
---_mtable-regex-SDML=moduleBody/^[[:space:]]*class[[:space:]]+([[:alnum:]\-_]+)/\1/u/{scope=push}{tenter=class}
+--_mtable-regex-SDML=moduleBody/^[[:space:]]*class[[:space:]]+([[:alnum:]\-_]+)/\1/c/{scope=push}{tenter=class}
 --_mtable-regex-SDML=moduleBody/^[[:space:]]*union[[:space:]]+([[:alnum:]\-_]+)/\1/u/{scope=push}{tenter=union}
---_mtable-regex-SDML=moduleBody/^[[:space:]]*end[[:space:]]*///{scope=pop}{tleave}
+--_mtable-regex-SDML=moduleBody/^[[:space:]]*end\b///{scope=pop}{tleave}
 
---_mtable-regex-SDML=import/^[[:space:]]*([[:alnum:]\-_]+:[[:alnum:]\-_]+)[[:space:]]+/\1/t/{_role=imported}
---_mtable-regex-SDML=import/^[[:space:]]*([[:alnum:]\-_]+)[[:space:]\-_]+/\1/M/{_role=imported}
 --_mtable-regex-SDML=import/^[[:space:]]*\][[:space:]]+///{tleave}
+--_mtable-regex-SDML=import/^[[:space:]]*([[:alnum:]\-_]+:[[:alnum:]\-_]+)\b/\1/t/{_role=imported}
+--_mtable-regex-SDML=import/^[[:space:]]*([[:alnum:]\-_]+)\b/\1/M/{_role=imported}
 
 #==============================================================================
 # Datatype definitions
@@ -235,15 +246,15 @@
 
 --_mtable-regex-SDML=datatype/^[ \t\r]*\n///
 --_mtable-extend-SDML=datatype+skipComment
---_mtable-regex-SDML=datatype/^[[:space:]]*opaque[[:space:]]+///
---_mtable-regex-SDML=datatype/^[[:space:]]*<-[[:space:]]+([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)/\1/t/{_role=ref}
---_mtable-regex-SDML=datatype/^[[:space:]]+is[[:space:]]*///{tjump=datatypeBody}
---_mtable-regex-SDML=datatype/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union))///{scope=pop}{tleave}{pcre2}
+--_mtable-regex-SDML=datatype/^[[:space:]]*opaque\b///
+--_mtable-regex-SDML=datatype/^[[:space:]]*<-[[:space:]]+([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)\b/\1/d/{_role=base}
+--_mtable-regex-SDML=datatype/^[[:space:]]+is\b///{tjump=datatypeBody}
+--_mtable-regex-SDML=datatype/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union)\b)///{scope=pop}{tleave}{pcre2}
 
 --_mtable-regex-SDML=datatypeBody/^[ \t\r]*\n///
 --_mtable-extend-SDML=datatypeBody+skipComment
 --_mtable-extend-SDML=datatypeBody+annotation
---_mtable-regex-SDML=datatypeBody/^[[:space:]]+end[[:space:]]+///{scope=pop}{tleave}
+--_mtable-regex-SDML=datatypeBody/^[[:space:]]*end\b///{scope=pop}{tleave}
 
 #==============================================================================
 # Entity definitions
@@ -251,14 +262,14 @@
 
 --_mtable-regex-SDML=entity/^[ \t\r]*\n///
 --_mtable-extend-SDML=entity+skipComment
---_mtable-regex-SDML=entity/^[[:space:]]+is[[:space:]]*///{tjump=entityBody}
---_mtable-regex-SDML=entity/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union))///{scope=pop}{tleave}{pcre2}
+--_mtable-regex-SDML=entity/^[[:space:]]+is\b///{tjump=entityBody}
+--_mtable-regex-SDML=entity/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union)\b)///{scope=pop}{tleave}{pcre2}
 
 --_mtable-regex-SDML=entityBody/^[ \t\r]*\n///
 --_mtable-extend-SDML=entityBody+skipComment
 --_mtable-extend-SDML=entityBody+annotation
---_mtable-regex-SDML=entityBody/^[[:space:]]*identity[[:space:]]+([[:alnum:]\-_]+)[[:space:]]+\->[[:space:]]+(\{[^\}]+\})?[[:space:]]*([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)/\1/m/{_role=identity}{scope=ref}
---_mtable-regex-SDML=entityBody/^[[:space:]]*identity[[:space:]]+ref[[:space:]]+([[:alnum:]\-_]+:)?([[:alnum:]\-_]+)/\2/m/{_role=identity}{scope=ref}
+--_mtable-regex-SDML=entityBody/^[[:space:]]*identity[[:space:]]+([[:alnum:]\-_]+)[[:space:]]+\->[[:space:]]+(\{[^\}]+\})?[[:space:]]*([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)\b/\1/m/{scope=ref}
+--_mtable-regex-SDML=entityBody/^[[:space:]]*identity[[:space:]]+ref[[:space:]]+([[:alnum:]\-_]+:)?([[:alnum:]\-_]+)\b/\2/p/{_role=ref}{scope=ref}
 --_mtable-extend-SDML=entityBody+memberedBody
 
 #==============================================================================
@@ -267,15 +278,15 @@
 
 --_mtable-regex-SDML=enum/^[ \t\r]*\n///
 --_mtable-extend-SDML=enum+skipComment
---_mtable-regex-SDML=enum/^[[:space:]]+of[[:space:]]*///{tjump=enumBody}
---_mtable-regex-SDML=enum/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union))///{scope=pop}{tleave}{pcre2}
+--_mtable-regex-SDML=enum/^[[:space:]]+of\b///{tjump=enumBody}
+--_mtable-regex-SDML=enum/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union)\b)///{scope=pop}{tleave}{pcre2}
 
 --_mtable-regex-SDML=enumBody/^[ \t\r]*\n///
 --_mtable-extend-SDML=enumBody+skipComment
 --_mtable-extend-SDML=enumBody+annotation
---_mtable-regex-SDML=enumBody/^[[:space:]]*is[[:space:]]*///{tenter=annOnlyBody}
---_mtable-regex-SDML=enumBody/^[[:space:]]*end[[:space:]]+///{scope=pop}{tleave}
---_mtable-regex-SDML=enumBody/^[[:space:]]*([[:alnum:]]+)[[:space:]]*/\1/V/{scope=ref}
+--_mtable-regex-SDML=enumBody/^[[:space:]]*is\b///{tenter=annOnlyBody}
+--_mtable-regex-SDML=enumBody/^[[:space:]]*end\b///{scope=pop}{tleave}
+--_mtable-regex-SDML=enumBody/^[[:space:]]*([[:alnum:]]+)\b/\1/V/{scope=ref}
 
 #==============================================================================
 # Event definitions
@@ -283,9 +294,9 @@
 
 --_mtable-regex-SDML=event/^[ \t\r]*\n///
 --_mtable-extend-SDML=event+skipComment
---_mtable-regex-SDML=event/^[[:space:]]*source[[:space:]]+([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)/\1/t/{_role=ref}
---_mtable-regex-SDML=event/^[[:space:]]+is[[:space:]]*///{tjump=eventBody}
---_mtable-regex-SDML=event/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union))///{scope=pop}{tleave}{pcre2}
+--_mtable-regex-SDML=event/^[[:space:]]*source[[:space:]]+([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)\b/\1/E/{_role=source}
+--_mtable-regex-SDML=event/^[[:space:]]+is\b///{tjump=eventBody}
+--_mtable-regex-SDML=event/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union)\b)///{scope=pop}{tleave}{pcre2}
 
 --_mtable-regex-SDML=eventBody/^[ \t\r]*\n///
 --_mtable-extend-SDML=eventBody+skipComment
@@ -298,9 +309,9 @@
 
 --_mtable-regex-SDML=property/^[ \t\r]*\n///
 --_mtable-extend-SDML=property+skipComment
---_mtable-regex-SDML=property/^[[:space:]]*is[[:space:]]*///{tenter=annOnlyBody}
---_mtable-regex-SDML=property/^[[:space:]]*\->[[:space:]]+(\{[^\}]+\})?[[:space:]]*([[:alnum:]]+(:[[:alnum:]]+)?)/\1/m/
---_mtable-regex-SDML=property/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union))///{tleave}{pcre2}
+--_mtable-regex-SDML=property/^[[:space:]]*is\b///{tenter=annOnlyBody}
+--_mtable-regex-SDML=property/^[[:space:]]*\->[[:space:]]+(\{[^\}]+\})?[[:space:]]*([[:alnum:]]+(:[[:alnum:]]+)?)\b/\2/t/{_role=type}
+--_mtable-regex-SDML=property/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union)\b)///{tleave}{pcre2}
 
 #==============================================================================
 # RDF definitions
@@ -308,16 +319,16 @@
 
 --_mtable-regex-SDML=rdf/^[ \t\r]*\n///
 --_mtable-extend-SDML=rdf+skipComment
---_mtable-regex-SDML=rdf/^[[:space:]]*type[[:space:]]*///{tenter=rdfType}
---_mtable-regex-SDML=rdf/^[[:space:]]*is[[:space:]]*///{tenter=annOnlyBody}
---_mtable-regex-SDML=rdf/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union))///{tleave}{pcre2}
+--_mtable-regex-SDML=rdf/^[[:space:]]*type\b///{tenter=rdfType}
+--_mtable-regex-SDML=rdf/^[[:space:]]*is\b///{tenter=annOnlyBody}
+--_mtable-regex-SDML=rdf/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union)\b)///{tleave}{pcre2}
 
 --_mtable-regex-SDML=rdfType/^[ \t\r]*\n///
 --_mtable-extend-SDML=rdfType+skipComment
---_mtable-regex-SDML=rdfType/^[[:space:]]*([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)[[:space:]]*/\1/t/{_role=ref}{tleave}
+--_mtable-regex-SDML=rdfType/^[[:space:]]*([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)\b/\1/t/{_role=type}{tleave}
 --_mtable-regex-SDML=rdfType/^[[:space:]]*\[[[:space:]]*///{tenter=rdfTypeList}
 
---_mtable-regex-SDML=rdfTypeList/^[[:space:]]*([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)[[:space:]]*/\1/t/{_role=ref}
+--_mtable-regex-SDML=rdfTypeList/^[[:space:]]*([[:alnum:]\-_]+(:[[:alnum:]\-_]+)?)\b/\1/t/{_role=type}
 --_mtable-regex-SDML=rdfTypeList/^[[:space:]]*\][[:space:]]*///{tleave}
 
 #==============================================================================
@@ -326,8 +337,8 @@
 
 --_mtable-regex-SDML=structure/^[ \t\r]*\n///
 --_mtable-extend-SDML=structure+skipComment
---_mtable-regex-SDML=structure/^[[:space:]]+is[[:space:]]*///{tjump=structureBody}
---_mtable-regex-SDML=structure/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union))///{tleave}{pcre2}
+--_mtable-regex-SDML=structure/^[[:space:]]+is\b///{tjump=structureBody}
+--_mtable-regex-SDML=structure/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union)\b)///{tleave}{pcre2}
 
 --_mtable-regex-SDML=structureBody/^[ \t\r]*\n///
 --_mtable-extend-SDML=structureBody+skipComment
@@ -340,8 +351,8 @@
 
 --_mtable-regex-SDML=class/^[ \t\r]*\n///
 --_mtable-extend-SDML=class+skipComment
---_mtable-regex-SDML=class/^[[:space:]]+is[[:space:]]*///{tjump=classBody}
---_mtable-regex-SDML=class/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union))///{tleave}{pcre2}
+--_mtable-regex-SDML=class/^[[:space:]]+is\b///{tjump=classBody}
+--_mtable-regex-SDML=class/^(?=[[:space:]]+(datatype|entity|enum|event|property|structure|union)\b)///{tleave}{pcre2}
 
 --_mtable-regex-SDML=classBody/^[ \t\r]*\n///
 --_mtable-extend-SDML=classBody+skipComment
@@ -352,12 +363,12 @@
 
 --_mtable-regex-SDML=union/^[ \t\r]*\n///
 --_mtable-extend-SDML=union+skipComment
---_mtable-regex-SDML=union/^[[:space:]]+of[[:space:]]*///{tjump=unionBody}
+--_mtable-regex-SDML=union/^[[:space:]]+of\b///{tjump=unionBody}
 
 --_mtable-regex-SDML=unionBody/^[ \t\r]*\n///
 --_mtable-extend-SDML=unionBody+skipComment
 --_mtable-extend-SDML=unionBody+annotation
---_mtable-regex-SDML=unionBody/^[[:space:]]*is[[:space:]]*///{tenter=annOnlyBody}
---_mtable-regex-SDML=unionBody/^[[:space:]]*end[[:space:]]+///{scope=pop}{tleave}
---_mtable-regex-SDML=unionBody/^[[:space:]]*[[:alnum:]\-_]+(:[[:alnum:]\-_]+)?[[:space:]]+as[[:space:]]+([[:alnum:]\-_]+)[[:space:]]*/\2/V/{scope=ref}
---_mtable-regex-SDML=unionBody/^[[:space:]]*([[:alnum:]\-_]+:)?([[:alnum:]\-_]+)[[:space:]]*/\2/V/{scope=ref}
+--_mtable-regex-SDML=unionBody/^[[:space:]]*is\b///{tenter=annOnlyBody}
+--_mtable-regex-SDML=unionBody/^[[:space:]]*end\b///{scope=pop}{tleave}
+--_mtable-regex-SDML=unionBody/^[[:space:]]*[[:alnum:]\-_]+(:[[:alnum:]\-_]+)?[[:space:]]+as[[:space:]]+([[:alnum:]\-_]+)\b/\2/V/{scope=ref}
+--_mtable-regex-SDML=unionBody/^[[:space:]]*([[:alnum:]\-_]+:)?([[:alnum:]\-_]+)\b/\2/V/{scope=ref}

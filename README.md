@@ -12,23 +12,102 @@ files add the `-e` argument.
 ❯ ctags -R *.sdm?
 ```
 
+By default the command will create *definition* tags only, which is OK as these
+are the primary purpose of the tool anyway. If you wish to see references you
+need to enable them on the command-line with the following arguments.
+
+```bash
+❯ ctags -R --extras=+r --fields=+r *.sdm?
+```
+
 This creates tags as follows.
 
-| **Name**              | **Definition Kind** | **Reference Kind** | **Reference Role** |
-|-----------------------|---------------------|--------------------|--------------------|
-| Module                | `M`                 | `M`                | `imported`         |
-| Datatype              | `d`                 | `t`                | `ref`              |
-| Entity                | `E`                 | `t`                | `ref`              |
-| Enum                  | `e`                 | `t`                | `ref`              |
-| Event                 | `x`                 | `t`                | `ref`              |
-| Property              | `p`                 | N/A                | N/A                |
-| Structure             | `s`                 | `t`                | `ref`              |
-| Union                 | `u`                 | `t`                | `ref`              |
-| Member                | `m`                 | N/A                | N/A                |
-| Variant               | `V`                 | N/A                | N/A                |
-| Annotation Property   | N/A                 | `t`                | `assertion`        |
-| Annotation Constraint | `C`                 | N/A                | N/A                |
-| *Type*                | `t`                 | `t`                | `imported`         |
+| **Name**              | **Definition Kind** | **Reference Kind** | **Reference Role** | **Notes** |
+|-----------------------|---------------------|--------------------|--------------------|-----------|
+| Module                | `M`                 | `M`                | `imported`         | 1         |
+| Datatype              | `d`                 | `d`, `t`           | `base`, `type`     | 2         |
+| Entity                | `E`                 | `E`, `t`           | `source`, `type`   | 3         |
+| Enum                  | `e`                 | `t`                | `type`             |           |
+| Event                 | `x`                 | `t`                | `type`             |           |
+| Property              | `p`                 | `p`                | `ref`              |           |
+| Structure             | `s`                 | `t`                | `type`             |           |
+| Union                 | `u`                 | `t`                | `type`             |           |
+| Member                | `m`                 | N/A                | N/A                |           |
+| Variant               | `V`                 | N/A                | N/A                |           |
+| Annotation Property   | N/A                 | `t`                | `assertion`        | 4         |
+| Annotation Constraint | `C`                 | N/A                | N/A                |           |
+| *Type*                | `t`                 | `t`                | `imported`         | 5         |
+
+1. Any unqualified name in an `import` statement is noted as an `imported` module
+   reference.
+2. Datatypes are required to have a base type, this is noted as a `base`
+   datatype reference.
+3. Events denote the source that emits them, this is noted as a `source` entity
+   reference.
+4. The name part of an annotation property is noted as an `assertion` reference.
+   If the right-hand side of an annotation property is a qualified name it is
+   noted as a `type` reference.
+5. Any qualified name in an `import` statement is noted as an `imported` module
+   reference.
+
+```sdml
+module example is
+  ;    ^ M:def
+
+  import dc
+  ;      ^ M:imported
+  
+  import xsd:integer
+  ;      ^ t:imported
+
+  @dc:description = "An example"@en
+  ;^ t:assertion
+
+  @dc:version =   xsd:decimal(2)
+  ;^ t:assertion  ^ t:type
+  
+  datatype MyInteger <- integer
+    ;      ^ d:def      ^ d:base
+
+  property thingIdentifier -> MyInteger
+    ;      ^ p:def            ^ t:type
+
+  entity BigThing is
+    ;    ^ E:def
+    identity ref thingIdentifier
+    ;            ^ p:ref
+
+    name -> {0..1} string
+    ;^ m:def       ^ t:type
+  end
+
+  enum ThingEnum of
+    ;  ^ e:def
+    ThingOne
+    ; ^ V:def
+    ThingTwo
+    ; ^ V:def
+  end
+  
+  event NewThing source BigThing
+    ;   ^ x:def         E:source
+  
+  structure LittleThing
+  ;         ^ s:def
+  
+  structure OtherThing
+  ;         ^ s:def
+
+  union Things of
+  ;     ^ u:def
+    LittleThing
+    ; ^ V:def
+    OtherThing as SmallThing
+    ;             ^ V:def
+  end
+  
+end
+```
 
 ## Installation
 
@@ -89,3 +168,17 @@ limitations under the License.
 ### Version 0.1.0
 
 * Initial release
+
+## Issues
+
+If you find an issue, please include the following in your report.
+
+1. A minimum working example (MWE), `example.sdml`.
+2. The output of the command `ctags --version`.
+3. The file `tags` and `ctags.out` generated by the following command.
+
+```bash
+❯ ctags --verbose --sort=no example.sdm >ctags.out 2>&1
+```
+
+Thank you.
