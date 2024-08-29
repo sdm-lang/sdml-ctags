@@ -155,8 +155,8 @@
 --_mtable-regex-SDML=annConstraint/[[:space:]]*=[[:space:]]+"///{tjump=string}
 --_mtable-regex-SDML=annConstraint/[[:space:]]*is\b///{tenter=annConstraintBody}
 
---_mtable-regex-SDML=annConstraint/[[:space:]]*(=|/=|<|>|<=|>=|not|and|or|xor|implies|iff|forall|exists|in|empty)[[:space:]]+///
---_mtable-regex-SDML=annConstraint/[[:space:]]*end\b///{tleave}
+#--_mtable-regex-SDML=annConstraintBody/[[:space:]]*(=|/=|<|>|<=|>=|not|and|or|xor|implies|iff|forall|exists|in|empty)[[:space:]]+//
+--_mtable-regex-SDML=annConstraintBody/[[:space:]]*end\b///{tleave}
 
 --_mtable-regex-SDML=value/^[[:space:]]*"///{tjump=string}
 --_mtable-regex-SDML=value/^[[:space:]]*<///{tjump=uri}
